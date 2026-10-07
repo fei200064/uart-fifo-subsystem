@@ -21,13 +21,13 @@ module tb_loopback;
 
     task send_and_check(input [7:0] d);
         begin
-            // TODO 1: pulse tx_start for one clock with tx_data = d
+           
             @(posedge clk);
             tx_data<=d;
             tx_start<=1'b1;
             @(posedge clk);
             tx_start<=1'b0;
-            // TODO 2: wait for rx_valid (hint: @(posedge rx_valid))
+           
             
             @(posedge rx_valid);
             @(posedge clk);
@@ -36,8 +36,7 @@ module tb_loopback;
               $display("FAIL:sent %h,decoded %h",d,rx_data);
             end else
                $display("PASS:sent %h,decoded %h",d,rx_data);
-            // TODO 3: compare rx_data with d using !==, count errors, print PASS/FAIL
-            // TODO 4: wait for tx_busy to go low before returning
+           
             wait(tx_busy==1'b0);
         end
     endtask
