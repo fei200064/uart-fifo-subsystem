@@ -46,6 +46,8 @@ module tb_loopback;
         $finish;
         end
     initial begin
+        $dumpfile("tb_loopback.vcd");
+         $dumpvars(0, tb_loopback); 
         #100 rst_n = 1;
         repeat (5) @(posedge clk);
         send_and_check(8'h55);
