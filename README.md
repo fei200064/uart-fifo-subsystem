@@ -115,7 +115,11 @@ Loopback of `0x55`, `0xA3`, `0x00`. Each `tx_start` begins a frame on `line`; af
   
 ## Roadmap
 
-- [ ] Sync FIFO on the TX side
-- [ ] Async FIFO (Gray-code pointers, 2-FF synchronizers) on the RX side
-- [ ] Error-injection tests (framing error, baud mismatch)
+## Roadmap
+
+- [x] Sync FIFO (standalone, tested)
+- [x] Async FIFO with Gray-code pointers and 2-FF synchronizers
+- [x] Top level with async FIFOs on both the TX and RX paths (`sys_clk` and `uart_clk`          domains)
+- [ ] Error-injection tests (framing error, overrun, baud mismatch)
 - [ ] Synthesis results (area, Fmax)
+- [ ] Per-domain reset synchronizers and synchronized error flags
