@@ -12,7 +12,7 @@ module tb_async_fifo;
     wire full,empty;
 
     always #10 wclk=~wclk;
-    always #15 rclk=~rclk;
+    always #47 rclk=~rclk;
 
     async_fifo# (.WIDTH(WIDTH), .DEPTH(DEPTH)) dut(
         .wclk(wclk), .wrst_n(wrst_n), .wr_en(wr_en), .wr_data(wr_data), .full(full),
