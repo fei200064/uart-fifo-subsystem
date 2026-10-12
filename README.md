@@ -32,6 +32,10 @@ A parameterized UART (baud generator, transmitter, and receiver with 16x oversam
 | `baud_gen` | Divides `clk_freq` to produce a one-clock `tick_16x` pulse, 16 ticks per bit. Parameters: `clk_freq`, `Baud`. |
 | `uart_tx` | FSM: IDLE, START, DATA, STOP. 8N1, LSB first. `tx_busy` is high during a frame. |
 | `uart_rx` | FSM: IDLE, START, DATA, STOP. Detects the start-bit falling edge, re-checks the line at mid-start-bit (rejects glitches), then samples each bit at its middle. Outputs `rx_valid` and `framing_err` as one-clock pulses. |
+| `sync_fifo` | Synchronous FIFO (`WIDTH`, `DEPTH`), first-word fall-through, `count`-based full/empty. Tested standalone. |
+| `async_fifo` | Asynchronous FIFO: Gray-code pointers with an extra bit, 2-FF synchronizers, `full` computed in the write domain and `empty` in the read domain. |
+| `sync_2ff` | Parameterized 2-flip-flop synchronizer. |
+| `uart_top` | Integration: TX async FIFO to `uart_tx`, `uart_rx` to RX async FIFO. `sys_clk` and `uart_clk` are separate domains. |
 
 ## Timing
 
@@ -77,6 +81,9 @@ Expected output: one `PASS` line per byte, then `TEST PASSED`.
 | `tb_baud_gen` | `tick_16x` is one clock wide and repeats every 27 clocks | Checked in waveform |
 | `tb_uart_tx` | Samples `tx` at mid-bit, rebuilds the byte, checks start and stop bits. Bytes: `0x55`, `0xA3`, `0x00`, `0xFF` | PASS |
 | `tb_loopback` | TX wired to RX, same four bytes, compared with `!==`. Has a timeout so a hung RX cannot stall the simulation | PASS |
+| `tb_sync_fifo` | Fill to full, write while full, ordered read-back, read while empty, simultaneous read/write | PASS |
+| `tb_async_fifo` | 1000 random bytes, in order, none lost. Three clock ratios: fast writer (50/33 MHz), fast reader (33/50 MHz), slow reader (50/~10.6 MHz) | PASS |
+| `tb_top` | 8-byte burst on `sys_clk` (100 MHz), through TX FIFO, UART loopback at `uart_clk` (50 MHz), RX FIFO, compared in order; no duplicates | PASS |
 
 **Not yet tested:** framing-error injection, baud mismatch, back-to-back frames, parity.
 
@@ -101,7 +108,11 @@ Loopback of `0x55`, `0xA3`, `0x00`. Each `tx_start` begins a frame on `line`; af
 - After a framing error the line is still 0, so RX may treat it as a new start bit (a break signal can retrigger it). Planned fix: IDLE must see the line high before it looks for a start bit.
 - No parity support yet.
 - Baud divider is truncated, not rounded.
-
+- `framing_err` and `overrun_err` are one-clock pulses in the `uart_clk` domain and are not synchronized to `sys_clk`.
+- Reset is shared across both clock domains, not synchronized per domain.
+- `uart_top` uses async FIFOs on both paths; `sync_fifo` is tested standalone only.
+- Overrun (RX FIFO full) and framing-error injection are not yet tested.
+  
 ## Roadmap
 
 - [ ] Sync FIFO on the TX side
